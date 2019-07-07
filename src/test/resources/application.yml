@@ -1,1 +1,12 @@
+spring:
+logging:
+  level:
+    org.springframework: INFO
+    br.com.ffroliva.mimecast: DEBUG
 
+#Propriedades Documentação
+app:
+  documentation:
+    version: '@project.version@'
+    title: File Search Rest API
+    description: '@project.description@'
