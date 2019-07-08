@@ -11,9 +11,9 @@ public class JacksonConfiguration {
 
     @Bean
     public ObjectMapper objectMapper() {
-        ObjectMapper mapper =  new ObjectMapper()
-                .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT )
-                .enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY );
+        ObjectMapper mapper = new ObjectMapper()
+                .enable(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)
+                .enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY);
         mapper.configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);
         return mapper;
     }

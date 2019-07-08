@@ -9,22 +9,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class FileSearchServiceTest {
+class FileSearchServiceTest {
 
     @Autowired
-    SearchService searchService;
-    String rootPath;
+    private SearchService searchService;
+    private String rootPath;
 
     @BeforeEach
-    void setup() throws URISyntaxException {
-        URI uri = getClass().getClassLoader().getResource("aaa").toURI();
-        rootPath = Paths.get(uri).toString();
+    void setup() {
+        rootPath = Paths.get(getClass().getClassLoader().getResource("aaa").getPath()).toString();
     }
 
     @Test

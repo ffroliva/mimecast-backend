@@ -6,11 +6,13 @@ import java.util.Locale;
 
 public class MessageSource {
     private static final ResourceBundleMessageSource messageSource;
+
     static {
         messageSource = new ResourceBundleMessageSource();
         messageSource.setBasenames("properties/messages");
         messageSource.setDefaultEncoding("UTF-8");
     }
+
     private static MessageSource INSTANCE;
 
     private MessageSource() {

@@ -19,7 +19,7 @@ public class ValidationTest {
     SearchService searchService;
 
     @Test
-    void invalidPathException(){
+    void invalidPathException() {
         SearchRequest sr = SearchRequest.of(
                 "notlocalhost",
                 "aaa",

@@ -1,8 +1,8 @@
 package br.com.ffroliva.mimecast.service.impl;
 
 import br.com.ffroliva.mimecast.exception.BusinessException;
-import br.com.ffroliva.mimecast.payload.SearchResponse;
 import br.com.ffroliva.mimecast.payload.SearchRequest;
+import br.com.ffroliva.mimecast.payload.SearchResponse;
 import br.com.ffroliva.mimecast.service.SearchService;
 import br.com.ffroliva.mimecast.validation.Validation;
 import br.com.ffroliva.mimecast.validation.rule.ServerValidationRule;
@@ -39,9 +39,9 @@ public class FileSearchService implements SearchService {
                     .map(path -> this.searchFileContent(path, searchRequest.getSearchTerm()))
                     .sorted(Comparator.comparing(SearchResponse::getFilePath))
                     .collect(Collectors.toList());
-        } catch (AccessDeniedException e ){
+        } catch (AccessDeniedException e) {
             throw new BusinessException(INVALID_PATH.bind(e.getMessage()));
-        } catch (IOException  e) {
+        } catch (IOException e) {
             throw new BusinessException(ACCESS_DENIED.bind(e.getMessage()));
         }
     }
@@ -68,7 +68,7 @@ public class FileSearchService implements SearchService {
                 .reduce(0, Integer::sum);
     }
 
-    private int countWordsInLine(String line, String searchTerm){
+    private int countWordsInLine(String line, String searchTerm) {
         Pattern pattern = Pattern.compile(searchTerm.toLowerCase());
         Matcher matcher = pattern.matcher(line.toLowerCase());
 
@@ -80,7 +80,6 @@ public class FileSearchService implements SearchService {
         }
         return count;
     }
-
 
 
 }

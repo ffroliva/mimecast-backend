@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.reactive.config.EnableWebFlux;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @CrossOrigin
@@ -17,8 +16,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ComponentScan(basePackages = "br.com.ffroliva")
 public class MimecastApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MimecastApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MimecastApplication.class, args);
+    }
 
 }

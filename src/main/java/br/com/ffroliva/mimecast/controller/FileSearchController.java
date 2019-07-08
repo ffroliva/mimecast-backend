@@ -1,7 +1,7 @@
 package br.com.ffroliva.mimecast.controller;
 
-import br.com.ffroliva.mimecast.payload.SearchResponse;
 import br.com.ffroliva.mimecast.payload.SearchRequest;
+import br.com.ffroliva.mimecast.payload.SearchResponse;
 import br.com.ffroliva.mimecast.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

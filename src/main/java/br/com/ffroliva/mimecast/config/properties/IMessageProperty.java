@@ -8,6 +8,6 @@ public interface IMessageProperty extends Serializable {
 
     String message();
 
-    IMessageProperty bind(String... args) ;
+    IMessageProperty bind(String... args);
 }
 
