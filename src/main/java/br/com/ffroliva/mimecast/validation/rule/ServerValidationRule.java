@@ -12,7 +12,7 @@ public class ServerValidationRule implements Rule {
     @Override
     public void run() {
         if (!server.equals("localhost")) {
-            throw new BusinessException(MessageProperty.INVALID_PATH);
+            throw new BusinessException(MessageProperty.INVALID_PATH.bind(server));
         }
     }
 
