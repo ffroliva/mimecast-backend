@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.io.IOException;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -23,13 +24,13 @@ import static java.util.Objects.requireNonNull;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class FileSearchControllerMockTest {
+class FileSearchControllerMockTest {
 
     @Mock
     FileSearchController fileSearchController;
 
     @Test
-    public void testSearchFiles() {
+    void testSearchFiles() {
         String server = "localhost";
         String rootPath = requireNonNull(getClass().getClassLoader().getResource("aaa")).getPath();
         String searchTerm = "aaa";

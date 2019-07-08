@@ -11,10 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -22,8 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static br.com.ffroliva.mimecast.config.properties.MessageProperty.ACCESS_DENIED;
-import static br.com.ffroliva.mimecast.config.properties.MessageProperty.INVALID_PATH;
+import static br.com.ffroliva.mimecast.config.properties.MessageProperty.*;
 
 @Slf4j
 @Service
@@ -36,13 +32,16 @@ public class FileSearchService implements SearchService {
             return paths
                     .parallel()
                     .filter(Files::isRegularFile)
+                    .filter(Files::isReadable)
                     .map(path -> this.searchFileContent(path, searchRequest.getSearchTerm()))
                     .sorted(Comparator.comparing(SearchResponse::getFilePath))
                     .collect(Collectors.toList());
         } catch (AccessDeniedException e) {
+            throw new BusinessException(ACCESS_DENIED.bind(e.getMessage()));
+        } catch (NoSuchFileException e) {
             throw new BusinessException(INVALID_PATH.bind(e.getMessage()));
         } catch (IOException e) {
-            throw new BusinessException(ACCESS_DENIED.bind(e.getMessage()));
+            throw new BusinessException(INTERNAL_SERVER_ERROR.bind(e.getMessage()));
         }
     }
 

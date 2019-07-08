@@ -3,7 +3,8 @@ package br.com.ffroliva.mimecast.config.properties;
 public enum MessageProperty implements IMessageProperty {
 
     INVALID_PATH("invalid.path"),
-    ACCESS_DENIED("access.denied");
+    ACCESS_DENIED("access.denied"),
+    INTERNAL_SERVER_ERROR("internal.server.error");
 
     private String[] args = {};
 
