@@ -4,16 +4,13 @@ import br.com.ffroliva.mimecast.config.properties.ApplicationProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.web.reactive.config.EnableWebFlux;
 
-@CrossOrigin
 @SpringBootApplication
 @EnableConfigurationProperties(ApplicationProperties.class)
-@EnableSwagger2
-//@EnableWebFlux
-@ComponentScan(basePackages = "br.com.ffroliva")
+@EnableWebFlux
+@EnableIntegration
 public class MimecastApplication {
 
     public static void main(String[] args) {

@@ -17,8 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static java.util.Objects.requireNonNull;
@@ -54,11 +53,11 @@ public class FileSearchControllerTest {
                 .header("Content-Type", "application/json")
                 .when()
                 .post("/file/search");
-        final List<SearchResponse> searchResponses = response
-                .as(new TypeRef<List<SearchResponse>>() {
+        final Flux<SearchResponse> searchResponses = response
+                .as(new TypeRef<Flux<SearchResponse>>() {
                 });
-        Assertions.assertTrue(searchResponses.size() > 0);
-        SearchResponse searchResponse = searchResponses.get(0);
+        Assertions.assertTrue(searchResponses.count().block() > 0);
+        SearchResponse searchResponse = searchResponses.blockFirst();
         Assertions.assertNotNull(searchResponse.getFilePath());
         Assertions.assertEquals(0, searchResponse.getCount());
     }
