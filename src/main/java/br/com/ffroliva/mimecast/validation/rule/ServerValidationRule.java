@@ -7,12 +7,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(staticName = "of")
 public class ServerValidationRule implements Rule {
 
-    private final String server;
+    private final String host;
 
     @Override
     public void run() {
-        if (!server.equals("localhost")) {
-            throw new BusinessException(MessageProperty.INVALID_PATH.bind(server));
+        if (!host.equals("localhost")) {
+            throw new BusinessException(MessageProperty.INVALID_PATH.bind(host));
         }
     }
 

@@ -12,7 +12,7 @@ import java.io.Serializable;
 @AllArgsConstructor(staticName = "of")
 public class SearchRequest implements Serializable {
     @NotNull
-    private String server;
+    private String host;
     @NotNull
     private String rootPath;
     @NotNull

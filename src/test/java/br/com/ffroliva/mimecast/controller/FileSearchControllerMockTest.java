@@ -9,6 +9,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.MockHttpServletRequest;
 import reactor.core.publisher.Flux;
 
 import java.util.stream.Stream;
@@ -22,6 +25,9 @@ class FileSearchControllerMockTest {
     @Mock
     FileSearchController fileSearchController;
 
+    @Mock
+    ServerHttpRequest request;
+
     @Test
     void testSearchFiles() {
         String server = "localhost";
@@ -29,9 +35,9 @@ class FileSearchControllerMockTest {
         String searchTerm = "aaa";
         SearchRequest searchRequest = SearchRequest.of("localhost", rootPath, searchTerm);
         Mockito.when(fileSearchController
-                .search(rootPath,searchTerm))
+                .search(rootPath,searchTerm,request))
                 .thenReturn(Flux.fromStream(Stream.of(SearchResponse.of("aaa", 1))));
-        final Flux<SearchResponse> searchResponses = fileSearchController.search(rootPath, searchTerm);
+        final Flux<SearchResponse> searchResponses = fileSearchController.search(rootPath, searchTerm,request);
         Assertions.assertEquals(Long.valueOf(1L), searchResponses.count().block());
         SearchResponse searchResponse = searchResponses.blockFirst();
         Assertions.assertNotNull(searchResponse.getFilePath());

@@ -8,7 +8,6 @@ import br.com.ffroliva.mimecast.validation.Validation;
 import br.com.ffroliva.mimecast.validation.rule.ServerValidationRule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +25,7 @@ public class FileSearchService implements SearchService {
 
     @Override
     public Stream<SearchResponse> search(SearchRequest searchRequest) {
-        Validation.execute(ServerValidationRule.of(searchRequest.getServer()));
+        Validation.execute(ServerValidationRule.of(searchRequest.getHost()));
         try (Stream<Path> paths = Files.walk(Paths.get(searchRequest.getRootPath()))) {
             return paths
                     .parallel()
