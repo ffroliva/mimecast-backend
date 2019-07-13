@@ -12,27 +12,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.List;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
 class FileSearchServiceTest {
 
-    @Autowired
-    private SearchService searchService;
+    private SearchService searchService = new FileSearchService();
     private String rootPath;
 
     @BeforeEach
-    void setup() {
-        rootPath = Paths.get(getClass().getClassLoader().getResource("aaa").getPath()).toString();
+    void setup() throws URISyntaxException {
+        rootPath = Paths.get(getClass().getClassLoader().getResource("aaa").toURI()).toString();
     }
 
     @Test
-    void testSearch() throws IOException {
+    void testSearch() {
         SearchRequest sr = SearchRequest.of("localhost", rootPath, "a");
         final List<SearchResponse> searchResult = searchService.search(sr);
         Assertions.assertEquals(4, searchResult.size());
     }
-
 }

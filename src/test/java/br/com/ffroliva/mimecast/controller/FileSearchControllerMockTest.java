@@ -15,6 +15,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -26,18 +27,19 @@ import static java.util.Objects.requireNonNull;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class FileSearchControllerMockTest {
 
+    private static final String LOCALHOST = "localhost";
+
     @Mock
     FileSearchController fileSearchController;
 
     @Test
-    void testSearchFiles() {
-        String server = "localhost";
-        String rootPath = requireNonNull(getClass().getClassLoader().getResource("aaa")).getPath();
+    void testSearchFiles() throws URISyntaxException {
+        String rootPath = getClass().getClassLoader().getResource("aaa").toURI().toString();
         String searchTerm = "aaa";
-        SearchRequest searchRequest = SearchRequest.of("localhost", rootPath, searchTerm);
+        SearchRequest searchRequest = SearchRequest.of(LOCALHOST, rootPath, searchTerm);
         Mockito.when(fileSearchController
                 .search(searchRequest))
-                .thenReturn(Lists.list(SearchResponse.of("aaa", 1)));
+                .thenReturn(Lists.list(SearchResponse.of(LOCALHOST,rootPath, 1, false)));
         final List<SearchResponse> searchResponses = fileSearchController.search(searchRequest);
         Assertions.assertEquals(1, searchResponses.size());
         SearchResponse searchResponse = searchResponses.get(0);

@@ -1,18 +1,18 @@
 package br.com.ffroliva.mimecast.payload;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
 
 @ToString
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(staticName = "of")
 public class SearchResponse implements Serializable {
 
-    private String filePath;
-    private long count;
+    private final String server;
+    private final String filePath;
+    private final long count;
+    private final boolean errorReadingFile;
 }

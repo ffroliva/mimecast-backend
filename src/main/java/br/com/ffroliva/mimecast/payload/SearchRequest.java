@@ -1,21 +1,21 @@
 package br.com.ffroliva.mimecast.payload;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
+
+@ToString
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor(staticName = "of")
+@RequiredArgsConstructor(staticName = "of")
 public class SearchRequest implements Serializable {
     @NotNull
-    private String server;
+    private final String server;
     @NotNull
-    private String rootPath;
+    private final String rootPath;
     @NotNull
-    private String searchTerm;
-
+    private final String searchTerm;
 }

@@ -12,7 +12,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableConfigurationProperties(ApplicationProperties.class)
 @EnableSwagger2
-//@EnableWebFlux
 @ComponentScan(basePackages = "br.com.ffroliva")
 public class MimecastApplication {
 
