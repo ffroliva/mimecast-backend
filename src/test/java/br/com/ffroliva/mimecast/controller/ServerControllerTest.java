@@ -21,8 +21,7 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(properties = "spring.main.web-application-type=reactive")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class ServerControllerTest {
 

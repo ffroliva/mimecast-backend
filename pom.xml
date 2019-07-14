@@ -21,6 +21,7 @@
         <swagger.version>3.0.0-SNAPSHOT</swagger.version>
         <mockito-junit-jupiter.version>2.23.0</mockito-junit-jupiter.version>
         <spring-plugin-core.version>1.2.0.RELEASE</spring-plugin-core.version>
+        <guava.version>28.0-jre</guava.version>
     </properties>
 
     <dependencies>
@@ -93,6 +94,11 @@
             <version>${swagger.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>28.0-jre</version>
+        </dependency>
 
         <!-- REST ASSURED BEGIN -->
         <dependency>

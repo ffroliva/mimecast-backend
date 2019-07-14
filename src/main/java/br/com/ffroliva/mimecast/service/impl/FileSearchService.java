@@ -1,23 +1,23 @@
 package br.com.ffroliva.mimecast.service.impl;
 
-import br.com.ffroliva.mimecast.exception.BusinessException;
 import br.com.ffroliva.mimecast.payload.SearchRequest;
 import br.com.ffroliva.mimecast.payload.SearchResponse;
 import br.com.ffroliva.mimecast.service.SearchService;
 import br.com.ffroliva.mimecast.validation.Validation;
 import br.com.ffroliva.mimecast.validation.rule.ServerValidationRule;
+import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.*;
+import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import static br.com.ffroliva.mimecast.config.properties.MessageProperty.*;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -26,31 +26,25 @@ public class FileSearchService implements SearchService {
     @Override
     public Stream<SearchResponse> search(SearchRequest searchRequest) {
         Validation.execute(ServerValidationRule.of(searchRequest.getHost()));
-        try (Stream<Path> paths = Files.walk(Paths.get(searchRequest.getRootPath()))) {
-            return paths
-                    .parallel()
-                    .filter(Files::isRegularFile)
-                    .filter(Files::isReadable)
-                    .map(path -> this.searchFileContent(path, searchRequest.getSearchTerm()))
-                    .sorted(Comparator.comparing(SearchResponse::getFilePath));
-        } catch (AccessDeniedException e) {
-            throw new BusinessException(ACCESS_DENIED.bind(e.getMessage()));
-        } catch (NoSuchFileException e) {
-            throw new BusinessException(INVALID_PATH.bind(e.getMessage()));
-        } catch (IOException e) {
-            throw new BusinessException(INTERNAL_SERVER_ERROR.bind(e.getMessage()));
-        }
+
+        File file = Paths.get(searchRequest.getRootPath()).toFile();
+        return StreamSupport
+                .stream(Files.fileTraverser()
+                        .breadthFirst(file).spliterator(), true)
+                .filter(f -> f.isFile() && f.canRead())
+                .map(f -> this.searchFileContent(f, searchRequest.getSearchTerm()))
+                .sorted(Comparator.comparing(SearchResponse::getFilePath));
     }
 
-    private SearchResponse searchFileContent(Path path, String searchTerm) {
+    private SearchResponse searchFileContent(File file, String searchTerm) {
         SearchResponse response;
-        try (BufferedReader br = Files.newBufferedReader(path)) {
+        try (BufferedReader br = Files.newReader(file, Charset.defaultCharset())) {
             response = SearchResponse.of(
-                    path.toString(),
+                    file.getAbsolutePath(),
                     countWordsInFile(searchTerm, br.lines()));
         } catch (Exception e) {
             response = SearchResponse.of(
-                    path.toString(),
+                    file.getAbsolutePath(),
                     0);
         }
         log.debug(response.toString());

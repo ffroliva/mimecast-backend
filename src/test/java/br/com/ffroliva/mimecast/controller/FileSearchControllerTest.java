@@ -24,7 +24,7 @@ import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(properties = "spring.main.web-application-type=reactive")
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class FileSearchControllerTest {

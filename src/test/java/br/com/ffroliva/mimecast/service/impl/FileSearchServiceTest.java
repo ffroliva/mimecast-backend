@@ -11,8 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
-import reactor.core.publisher.Flux;
 
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
@@ -20,7 +18,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
+@SpringBootTest(properties = "spring.main.web-application-type=reactive")
 class FileSearchServiceTest {
 
     @Autowired
@@ -36,7 +34,7 @@ class FileSearchServiceTest {
     void testSearch() {
         SearchRequest sr = SearchRequest.of("localhost", rootPath, "a");
         final Stream<SearchResponse> searchResult = searchService.search(sr);
-        Assertions.assertEquals(4, searchResult.count());
+        Assertions.assertEquals(11, searchResult.count());
     }
 
 }
