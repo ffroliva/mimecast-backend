@@ -5,6 +5,7 @@ import br.com.ffroliva.mimecast.payload.SearchResponse;
 import br.com.ffroliva.mimecast.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,12 +23,11 @@ public class FileSearchController {
     private String host;
 
     @GetMapping(
-            value = "/search")
+            value = "/search", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<SearchResponse> search(
             @RequestParam(value = "rootPath") String rootPath,
             @RequestParam(value = "searchTerm") String searchTerm,
             ServerHttpRequest request) {
-        log.debug("Request URI: " + host);
         return Flux.fromStream(searchService
                 .search(SearchRequest.of(request.getURI().getHost(), rootPath, searchTerm)));
     }
