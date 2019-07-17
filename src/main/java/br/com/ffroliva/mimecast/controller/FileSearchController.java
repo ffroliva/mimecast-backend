@@ -34,6 +34,6 @@ public class FileSearchController {
             ServerHttpRequest request) {
         return Flux.fromStream(searchService
                 .search(SearchRequest.of(request.getURI().getHost(), rootPath, searchTerm)))
-                .delayElements(Duration.of(50L, ChronoUnit.MILLIS));
+                .delayElements(Duration.of(100L, ChronoUnit.MILLIS));
     }
 }
