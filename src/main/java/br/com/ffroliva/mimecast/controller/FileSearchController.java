@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -29,6 +33,7 @@ public class FileSearchController {
             @RequestParam(value = "searchTerm") String searchTerm,
             ServerHttpRequest request) {
         return Flux.fromStream(searchService
-                .search(SearchRequest.of(request.getURI().getHost(), rootPath, searchTerm)));
+                .search(SearchRequest.of(request.getURI().getHost(), rootPath, searchTerm)))
+                .delayElements(Duration.of(50L, ChronoUnit.MILLIS));
     }
 }
