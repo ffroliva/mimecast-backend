@@ -1,9 +1,12 @@
 package br.com.ffroliva.mimecast.service.impl;
 
+import br.com.ffroliva.mimecast.config.properties.MessageProperty;
+import br.com.ffroliva.mimecast.exception.BusinessException;
 import br.com.ffroliva.mimecast.payload.SearchRequest;
 import br.com.ffroliva.mimecast.payload.SearchResponse;
 import br.com.ffroliva.mimecast.service.SearchService;
 import br.com.ffroliva.mimecast.validation.Validation;
+import br.com.ffroliva.mimecast.validation.rule.IsValidPath;
 import br.com.ffroliva.mimecast.validation.rule.ServerValidationRule;
 import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
@@ -25,15 +28,20 @@ public class FileSearchService implements SearchService {
 
     @Override
     public Stream<SearchResponse> search(SearchRequest searchRequest) {
-        Validation.execute(ServerValidationRule.of(searchRequest.getHost()));
-
-        File file = Paths.get(searchRequest.getRootPath()).toFile();
-        return StreamSupport
-                .stream(Files.fileTraverser()
-                        .breadthFirst(file).spliterator(), true)
-                .filter(f -> f.isFile() && f.canRead())
-                .map(f -> this.searchFileContent(f, searchRequest.getSearchTerm()))
-                .sorted(Comparator.comparing(SearchResponse::getFilePath));
+        try {
+            File file = Paths.get(searchRequest.getRootPath()).toFile();
+            Validation.execute(ServerValidationRule.of(searchRequest.getHost()));
+            Validation.execute(IsValidPath.of(file));
+            return StreamSupport
+                    .stream(Files.fileTraverser()
+                            .breadthFirst(file).spliterator(), true)
+                    .filter(f -> f.isFile() && f.canRead())
+                    .map(f -> this.searchFileContent(f, searchRequest.getSearchTerm()))
+                    .sorted(Comparator.comparing(SearchResponse::getFilePath));
+        } catch (Exception e) {
+            throw new BusinessException(MessageProperty.INVALID_PATH
+                    .bind(searchRequest.getRootPath()));
+        }
     }
 
     private SearchResponse searchFileContent(File file, String searchTerm) {

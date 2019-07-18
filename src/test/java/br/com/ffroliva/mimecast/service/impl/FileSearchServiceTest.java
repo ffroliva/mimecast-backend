@@ -1,5 +1,6 @@
 package br.com.ffroliva.mimecast.service.impl;
 
+import br.com.ffroliva.mimecast.exception.BusinessException;
 import br.com.ffroliva.mimecast.payload.SearchRequest;
 import br.com.ffroliva.mimecast.payload.SearchResponse;
 import br.com.ffroliva.mimecast.service.SearchService;
@@ -36,5 +37,13 @@ class FileSearchServiceTest {
         final Stream<SearchResponse> searchResult = searchService.search(sr);
         Assertions.assertEquals(11, searchResult.count());
     }
+
+
+    @Test
+    void test_search_at_invalid_path() {
+        SearchRequest sr = SearchRequest.of("localhost", "gffdgaa", "a");
+        Assertions.assertThrows(BusinessException.class, () -> searchService.search(sr));
+    }
+
 
 }
