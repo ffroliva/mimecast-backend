@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor(staticName = "of")
-public class SearchResponse implements Serializable {
+public class SearchResponse implements Serializable, Data {
 
     private String filePath;
     private long count;
