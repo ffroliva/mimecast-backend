@@ -1,0 +1,12 @@
+spring:
+logging:
+  level:
+    org.springframework: INFO
+    br.com.ffroliva.mimecast: DEBUG
+
+
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+    parser:
+      STRICT_DUPLICATE_DETECTION: true
