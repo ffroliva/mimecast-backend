@@ -30,7 +30,7 @@ public class FileSearchService implements SearchService {
     public Stream<SearchResponse> search(SearchRequest searchRequest) {
         try {
             File file = Paths.get(searchRequest.getRootPath()).toFile();
-            Validation.execute(ServerValidationRule.of(searchRequest.getHost()));
+            Validation.execute(ServerValidationRule.of(searchRequest.getServer()));
             Validation.execute(IsValidPath.of(file));
             return StreamSupport
                     .stream(Files.fileTraverser()

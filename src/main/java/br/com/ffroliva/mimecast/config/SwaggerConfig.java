@@ -1,6 +1,7 @@
 package br.com.ffroliva.mimecast.config;
 
 import br.com.ffroliva.mimecast.config.properties.ApplicationProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +17,10 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2WebFlux;
 
 @Configuration
 @EnableSwagger2WebFlux
+@RequiredArgsConstructor
 public class SwaggerConfig implements WebFluxConfigurer {
 
-    @Autowired
-    private ApplicationProperties.Documentation properties;
+    private final ApplicationProperties.Documentation properties;
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
