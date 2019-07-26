@@ -15,4 +15,5 @@ public class SearchResponse implements Serializable, Data {
 
     private String filePath;
     private long count;
+    private String server;
 }

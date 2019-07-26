@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.ParallelFlux;
@@ -19,6 +18,8 @@ import reactor.core.publisher.ParallelFlux;
 import java.util.Arrays;
 import java.util.List;
 
+import static br.com.ffroliva.mimecast.payload.MessageEvent.ERROR;
+import static br.com.ffroliva.mimecast.payload.MessageEvent.SUCCESS;
 import static java.util.Objects.requireNonNull;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -39,14 +40,13 @@ class FileSearchControllerMockTest {
         List<String > servers = Arrays.asList(proxyServer);
 
         Mockito.when(fileSearchController
-                .search(rootPath,searchTerm, servers))
+                .search(rootPath,searchTerm, servers, null))
                 .thenReturn(ParallelFlux
                         .from(Flux
-                                .just(MessageEvent
-                                        .success(SearchResponse
-                                                .of("aaa", 1)))));
+                                .just(new MessageEvent(SUCCESS, SearchResponse
+                                                .of("aaa", 1, proxyServer)))));
 
-        final ParallelFlux<MessageEvent> searchResponses = fileSearchController.search(rootPath, searchTerm, servers);
+        final ParallelFlux<MessageEvent> searchResponses = fileSearchController.search(rootPath, searchTerm, servers, null);
         //Assertions.assertEquals(Long.valueOf(1L), searchResponses.count().block());
         //MessageEvent<SearchResponse> messageEvent = searchResponses.blockFirst();
         //Assertions.assertNotNull(messageEvent.getData().getFilePath());
@@ -59,7 +59,7 @@ class FileSearchControllerMockTest {
         BusinessException ex = new BusinessException(MessageProperty.INVALID_PATH.bind("aaa"));
         Mockito.when(fileSearchController
                 .handleBusinessException(ex))
-                .thenReturn(Flux.just(MessageEvent.error(new ErrorResponse(ex.getMessage(), BAD_REQUEST.toString()))));
+                .thenReturn(Flux.just(new MessageEvent(ERROR, new ErrorResponse(ex.getMessage(), BAD_REQUEST.toString()))));
         final Flux<MessageEvent> searchResponses = fileSearchController.handleBusinessException(ex);
         Assertions.assertEquals(Long.valueOf(1L), searchResponses.count().block());
         MessageEvent<ErrorResponse> messageEvent = searchResponses.blockFirst();

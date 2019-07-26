@@ -1,5 +1,6 @@
 package br.com.ffroliva.mimecast.service.impl;
 
+import br.com.ffroliva.mimecast.config.properties.ApplicationProperties;
 import br.com.ffroliva.mimecast.config.properties.MessageProperty;
 import br.com.ffroliva.mimecast.exception.BusinessException;
 import br.com.ffroliva.mimecast.payload.SearchRequest;
@@ -9,6 +10,7 @@ import br.com.ffroliva.mimecast.validation.Validation;
 import br.com.ffroliva.mimecast.validation.rule.IsValidPath;
 import br.com.ffroliva.mimecast.validation.rule.ServerValidationRule;
 import com.google.common.io.Files;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -24,36 +26,44 @@ import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FileSearchService implements SearchService {
+
+    private final ApplicationProperties applicationProperties;
 
     @Override
     public Stream<SearchResponse> search(SearchRequest searchRequest) {
         try {
             File file = Paths.get(searchRequest.getRootPath()).toFile();
-            Validation.execute(ServerValidationRule.of(searchRequest.getServer()));
-            Validation.execute(IsValidPath.of(file));
+            Validation.execute(ServerValidationRule
+                    .of(searchRequest.getServer(), applicationProperties.getServersAsSet()));
+            Validation.execute(IsValidPath.of(file, searchRequest.getServer()));
             return StreamSupport
                     .stream(Files.fileTraverser()
                             .breadthFirst(file).spliterator(), true)
                     .filter(f -> f.isFile() && f.canRead())
-                    .map(f -> this.searchFileContent(f, searchRequest.getSearchTerm()))
+                    .map(f -> this.searchFileContent(f, searchRequest))
                     .sorted(Comparator.comparing(SearchResponse::getFilePath));
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
-            throw new BusinessException(MessageProperty.INVALID_PATH
+            throw new BusinessException(MessageProperty.INTERNAL_SERVER_ERROR
                     .bind(searchRequest.getRootPath()));
         }
     }
 
-    private SearchResponse searchFileContent(File file, String searchTerm) {
+    private SearchResponse searchFileContent(File file, SearchRequest searchRequest) {
         SearchResponse response;
         try (BufferedReader br = Files.newReader(file, Charset.defaultCharset())) {
             response = SearchResponse.of(
                     file.getAbsolutePath(),
-                    countWordsInFile(searchTerm, br.lines()));
+                    countWordsInFile(searchRequest.getSearchTerm(), br.lines()),
+                    searchRequest.getServer());
         } catch (Exception e) {
             response = SearchResponse.of(
                     file.getAbsolutePath(),
-                    0);
+                    0,
+                    searchRequest.getServer());
         }
         log.debug(response.toString());
         return response;

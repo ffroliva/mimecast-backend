@@ -1,5 +1,6 @@
 package br.com.ffroliva.mimecast.service.impl;
 
+import br.com.ffroliva.mimecast.config.properties.ApplicationProperties;
 import br.com.ffroliva.mimecast.exception.BusinessException;
 import br.com.ffroliva.mimecast.payload.SearchRequest;
 import br.com.ffroliva.mimecast.payload.SearchResponse;
@@ -24,6 +25,8 @@ class FileSearchServiceTest {
 
     @Autowired
     private SearchService searchService;
+    @Autowired
+    ApplicationProperties applicationProperties;
     private String rootPath;
 
     @BeforeEach
@@ -33,7 +36,7 @@ class FileSearchServiceTest {
 
     @Test
     void testSearch() {
-        SearchRequest sr = SearchRequest.of("localhost", rootPath, "a");
+        SearchRequest sr = SearchRequest.of(applicationProperties.getProxyUrl(), rootPath, "a");
         final Stream<SearchResponse> searchResult = searchService.search(sr);
         Assertions.assertEquals(11, searchResult.count());
     }
@@ -41,7 +44,7 @@ class FileSearchServiceTest {
 
     @Test
     void test_search_at_invalid_path() {
-        SearchRequest sr = SearchRequest.of("localhost", "gffdgaa", "a");
+        SearchRequest sr = SearchRequest.of(applicationProperties.getProxyUrl(), "gffdgaa", "a");
         Assertions.assertThrows(BusinessException.class, () -> searchService.search(sr));
     }
 

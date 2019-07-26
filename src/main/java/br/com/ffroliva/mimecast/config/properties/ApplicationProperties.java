@@ -1,9 +1,12 @@
 package br.com.ffroliva.mimecast.config.properties;
 
+import com.google.common.collect.ImmutableSet;
 import lombok.Data;
-import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.Set;
 
 
 @Component
@@ -21,5 +24,12 @@ public class ApplicationProperties {
         public String description;
 
         public String version;
+    }
+
+    public Set<String> getServersAsSet() {
+        return ImmutableSet.copyOf(Arrays
+                .stream(this.getServers().split(","))
+                .map(String::trim)
+                .iterator());
     }
 }

@@ -1,7 +1,10 @@
 package br.com.ffroliva.mimecast.utils;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.URL;
 
 public class ServerUtils {
 

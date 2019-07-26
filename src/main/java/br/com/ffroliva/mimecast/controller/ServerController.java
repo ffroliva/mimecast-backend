@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,8 +21,9 @@ public class ServerController {
 
     @GetMapping(value = SERVERS)
     public List<String> getServers() {
-        return Arrays
-                .stream(applicationProperties.getServers().split(","))
+        return applicationProperties
+                .getServersAsSet()
+                .stream()
                 .filter(ServerUtils::pingHost)
                 .collect(Collectors.toList());
     }
