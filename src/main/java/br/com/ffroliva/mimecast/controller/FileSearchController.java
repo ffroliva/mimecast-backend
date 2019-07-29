@@ -48,10 +48,9 @@ public class FileSearchController {
             @RequestParam(value = "servers") List<String> servers,
             ServerHttpRequest request
             ) {
-        return Flux.fromStream(servers.stream())
+        return Flux.fromStream(servers.parallelStream())
                 .flatMap(server -> this.searchAt(request,server, rootPath, searchTerm))
-                .delayElements(Duration.of(100L, ChronoUnit.MILLIS))
-                ;
+                .delayElements(Duration.of(100L, ChronoUnit.MILLIS));
 
     }
 
