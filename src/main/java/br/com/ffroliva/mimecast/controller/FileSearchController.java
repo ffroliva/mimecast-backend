@@ -14,7 +14,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.ParallelFlux;
 
 import java.net.ConnectException;
 import java.net.MalformedURLException;
@@ -24,8 +23,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static br.com.ffroliva.mimecast.controller.FileSearchController.FILE;
-import static br.com.ffroliva.mimecast.payload.MessageEvent.ERROR;
-import static br.com.ffroliva.mimecast.payload.MessageEvent.SUCCESS;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
