@@ -1,8 +1,11 @@
 package br.com.ffroliva.mimecast.payload;
 
+import br.com.ffroliva.mimecast.payload.jackson.deserializer.MessageEventDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@JsonDeserialize(using = MessageEventDeserializer.class)
 @RequiredArgsConstructor
 @Getter
 public class MessageEvent<T extends Data> {

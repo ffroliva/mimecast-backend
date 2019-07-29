@@ -1,6 +1,7 @@
 spring:
   main:
     allow-bean-definition-overriding: true
+    web-application-type: reactive
 logging:
   level:
     org.springframework: INFO
@@ -12,3 +13,7 @@ app:
     version: '@project.version@'
     title: File Search Rest API
     description: '@project.description@'
+  proxy-url: http://localhost:8080
+  servers: http://localhost:8080, http://localhost:9090
+
+

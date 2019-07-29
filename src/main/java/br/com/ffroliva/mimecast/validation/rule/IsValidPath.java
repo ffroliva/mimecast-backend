@@ -10,15 +10,16 @@ import java.io.File;
 public class IsValidPath implements Rule {
 
     private final File file;
+    private final String server;
 
-    public static IsValidPath of(File file) {
-        return new IsValidPath(file);
+    public static IsValidPath of(File file, String server) {
+        return new IsValidPath(file, server);
     }
 
     @Override
     public void run() {
         if(!file.exists()){
-           throw new BusinessException(MessageProperty.INVALID_PATH);
+           throw new BusinessException(MessageProperty.INVALID_PATH.bind(file.getPath(), server));
         }
     }
 }
