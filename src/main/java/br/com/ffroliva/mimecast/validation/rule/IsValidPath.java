@@ -19,7 +19,7 @@ public class IsValidPath implements Rule {
     @Override
     public void run() {
         if(!file.exists()){
-           throw new BusinessException(MessageProperty.INVALID_PATH.bind(file.getAbsolutePath(), server));
+           throw new BusinessException(MessageProperty.INVALID_PATH.bind(file.getPath(), server));
         }
     }
 }

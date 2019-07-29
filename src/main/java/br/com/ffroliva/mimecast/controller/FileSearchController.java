@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.ParallelFlux;
 
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -26,6 +27,7 @@ import static br.com.ffroliva.mimecast.controller.FileSearchController.FILE;
 import static br.com.ffroliva.mimecast.payload.MessageEvent.ERROR;
 import static br.com.ffroliva.mimecast.payload.MessageEvent.SUCCESS;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,7 +42,7 @@ public class FileSearchController {
 
     @GetMapping(
             value = SEARCH, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ParallelFlux<MessageEvent> search(
+    public Flux<MessageEvent> search(
             @RequestParam(value = "rootPath") String rootPath,
             @RequestParam(value = "searchTerm") String searchTerm,
             @RequestParam(value = "servers") List<String> servers,
@@ -49,7 +51,7 @@ public class FileSearchController {
         return Flux.fromStream(servers.stream())
                 .flatMap(server -> this.searchAt(request,server, rootPath, searchTerm))
                 .delayElements(Duration.of(100L, ChronoUnit.MILLIS))
-                .parallel();
+                ;
 
     }
 
@@ -83,13 +85,6 @@ public class FileSearchController {
         }
     }
 
-    @ExceptionHandler(BusinessException.class)
-    public Flux<MessageEvent> handleBusinessException(BusinessException ex) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
-        return Flux.just(MessageEvent.error(new ErrorResponse(ex.getMessage(), BAD_REQUEST.toString())));
-    }
-
     private String getRequestUrl(ServerHttpRequest request) {
         String requestUrl = null;
         try {
@@ -101,6 +96,26 @@ public class FileSearchController {
         return requestUrl;
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public Flux<MessageEvent> handleBusinessException(BusinessException ex) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
+        return Flux.just(MessageEvent.error(new ErrorResponse(ex.getMessage(), BAD_REQUEST.toString())));
+    }
 
+
+    @ExceptionHandler(ConnectException.class)
+    public Flux<MessageEvent> handleConnectException(ConnectException ex) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
+        return Flux.just(MessageEvent.error(new ErrorResponse(
+                this.buildCustomErrorMessageFromException(ex),
+                INTERNAL_SERVER_ERROR.toString())));
+    }
+
+    private String buildCustomErrorMessageFromException(ConnectException ex) {
+        int indexOf = ex.getMessage().indexOf("localhost");
+        return String.format("Selected server is offline: %s", ex.getMessage().substring(indexOf));
+    }
 
 }
