@@ -1,5 +1,5 @@
 # mimecast-backend
-Backend for mimecast test
+Backend for mimecast app
 
 ## Run
 
