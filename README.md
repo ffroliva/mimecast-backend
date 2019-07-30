@@ -154,7 +154,7 @@ create as a wrapper class so we can control what type of data would be receiving
 In this app we can search at various servers simultaneously. By default `http://localhost:8080` acts as a proxy 
 server receiving messages incoming from all other servers. To delegate request to non-proxy servers we used `WebClient`. 
 While using `WebClient` we faced errors while deserializing the `data` attribute from the `MessageEvent` bean. 
-The error happened because the `data` attribute is a generic type and the default serializer doesn't know each concrete 
+The error happened because the `data` attribute is a generic type and the default serializer doesn't know which concrete 
  type to parse at runtime. This error was fix by introducing the `MessageEventDeserializer.class`.    
 
 ```java
