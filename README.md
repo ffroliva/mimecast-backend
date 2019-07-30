@@ -26,10 +26,57 @@ Backend for mimecast app
 
 ## Swagger
 
-This app was integrated with Swagger of the endpoints could be documented and tested easily. 
-There url to access swagger's UI is: 
+This app was integrated with Swagger to document and test the endpoints. 
+To access swagger's UI access the following link: 
 
 - http://localhost:8080/swagger-ui.html#
+
+## Webflux as the framework for data streaming
+
+Spring framework was the chosen API to enable streaming of data. 
+`FileSearchController.java` contains a search method that returns `Flux<MessageEvent>` the expected data flow.
+
+```java
+@Slf4j
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/file")
+public class FileSearchController {
+
+    private final SearchService searchService;
+
+    @GetMapping(
+            value = "/search", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<MessageEvent> search(
+            @RequestParam(value = "rootPath") String rootPath,
+            @RequestParam(value = "searchTerm") String searchTerm,
+            ServerHttpRequest request) {
+        return Flux.fromStream(searchService
+                .search(SearchRequest.of(request.getURI().getHost(), rootPath, searchTerm)))
+                .map(MessageEvent::success)
+                .delayElements(Duration.of(100L, ChronoUnit.MILLIS));
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public Flux<MessageEvent> handleBusinessException(BusinessException ex) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
+        return Flux.just(MessageEvent
+                .error(new ErrorResponse(ex.getMessage(), BAD_REQUEST.toString())));
+    }
+
+}
+```
+
+## Searching at multiple servers
+
+To enable to search at multiple servers simultaneously two configuration properties were created.
+
+````yaml
+app:
+  servers: http://localhost:8080, http://localhost:9090
+  proxy-url: http://localhost:8080
+````
 
 ## Considerations about the stream of data:
 
@@ -134,47 +181,81 @@ public class MessageEventDeserializer extends JsonDeserializer<MessageEvent> {
 }
 ```
 
-## Stringboot Webflux for the data streaming
 
-Spring framework has a streaming API called webflux. 
-It was used in the `FileSearchController.java` to produce the expected data flow.
+## Google guava for the rescue in the file search in the backend.
+
+While developing the file search in the backend I faced situations where I was not able to handle exceptions properly. I developed two other implementations of the file search, one using `Files.walk` and `Files.walkfiletree`. 
+
+1. At first I used `Files.walk` who eventually might throws `java.io.UncheckedIOException: java.nio.file.AccessDeniedException:` which can't be catched by a `try-catch` block. I, therefore, dropped this implementation.
+
+2. Then, I tried using `Files.walkfiletree`. However, in this implementation I was not able to properly return a stream of data out of it. This implementation was also dropped.
+
+3. My third and final implementation used google guava toolbox to search the files of a given directory. With google guava I was able to handle erros properly. Here is the code:
 
 ```java
 @Slf4j
-@RequiredArgsConstructor
-@RestController
-@RequestMapping("/file")
-public class FileSearchController {
+@Service
+public class FileSearchService implements SearchService {
 
-    private final SearchService searchService;
-
-    @GetMapping(
-            value = "/search", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<MessageEvent> search(
-            @RequestParam(value = "rootPath") String rootPath,
-            @RequestParam(value = "searchTerm") String searchTerm,
-            ServerHttpRequest request) {
-        return Flux.fromStream(searchService
-                .search(SearchRequest.of(request.getURI().getHost(), rootPath, searchTerm)))
-                .map(MessageEvent::success)
-                .delayElements(Duration.of(100L, ChronoUnit.MILLIS));
+    @Override
+    public Stream<SearchResponse> search(SearchRequest searchRequest) {
+        try {
+            File file = Paths.get(searchRequest.getRootPath()).toFile();
+            Validation.execute(ServerValidationRule.of(searchRequest.getHost()));
+            Validation.execute(IsValidPath.of(file));
+            return StreamSupport
+                    .stream(Files.fileTraverser()
+                            .breadthFirst(file).spliterator(), true)
+                    .filter(f -> f.isFile() && f.canRead())
+                    .map(f -> this.searchFileContent(f, searchRequest.getSearchTerm()))
+                    .sorted(Comparator.comparing(SearchResponse::getFilePath));
+        } catch (Exception e) {
+            throw new BusinessException(MessageProperty.INVALID_PATH
+                    .bind(searchRequest.getRootPath()));
+        }
     }
 
-    @ExceptionHandler(BusinessException.class)
-    public Flux<MessageEvent> handleBusinessException(BusinessException ex) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
-        return Flux.just(MessageEvent
-                .error(new ErrorResponse(ex.getMessage(), BAD_REQUEST.toString())));
+    private SearchResponse searchFileContent(File file, String searchTerm) {
+        SearchResponse response;
+        try (BufferedReader br = Files.newReader(file, Charset.defaultCharset())) {
+            response = SearchResponse.of(
+                    file.getAbsolutePath(),
+                    countWordsInFile(searchTerm, br.lines()));
+        } catch (Exception e) {
+            response = SearchResponse.of(
+                    file.getAbsolutePath(),
+                    0);
+        }
+        log.debug(response.toString());
+        return response;
     }
 
+    private int countWordsInFile(String searchTerm, Stream<String> linesStream) {
+        return linesStream
+                .parallel()
+                .map(line -> countWordsInLine(line, searchTerm))
+                .reduce(0, Integer::sum);
+    }
+
+    private int countWordsInLine(String line, String searchTerm) {
+        Pattern pattern = Pattern.compile(searchTerm.toLowerCase());
+        Matcher matcher = pattern.matcher(line.toLowerCase());
+
+        int count = 0;
+        int i = 0;
+        while (matcher.find(i)) {
+            count++;
+            i = matcher.start() + 1;
+        }
+        return count;
+    }
 }
+
 ```
 
-## Multiple servers requirement
+## Testing for the backend
 
-One of the requirements of this app is to be able to search at multiple servers simultaneously. 
-This capability was achieved using two configuration properties included in 
+Most of the main functionalities were tested using JUnit5. Some functionalities used Mokito and other Restassured.
 
 ## Frontend
 
