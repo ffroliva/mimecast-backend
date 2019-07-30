@@ -36,7 +36,7 @@ To access swagger's UI access the following link:
 Spring framework was the chosen API to enable streaming of data. 
 `FileSearchController.java` contains a method called `search` 
 that returns `Flux<MessageEvent>` which enables to consume
-produced messages in a non-blocking manner.
+messages in a non-blocking manner.
 
 ```java
 @Slf4j
@@ -130,21 +130,6 @@ public class FileSearchController {
 }
 ```
 
-## Searching at multiple servers
-
-To enable to searching at multiple servers simultaneously two configuration properties were created.
-
-````yaml
-app:
-  servers: http://localhost:8080, http://localhost:9090
-  proxy-url: http://localhost:8080
-````
-
-The `/servers` and point reads the `app.servers` property and tries to to ping at each server. 
-If ping is successful the server is included in a set of available servers. 
-
-`app.proxy-url` defines the proxy server. All the incoming data passes thru it to be presented to the client.
-
 ## Considerations about the stream of data:
 
 One of the main problems about streaming of data relates to the the capacity of clients/consumers 
@@ -156,18 +141,18 @@ introduced and it allowed the browser to handle the incoming data properly.
 ## Strategy used to consume incoming data
 
 Server side events (SSE) was the strategy used to consume incoming data from the backend. SSE only accepts `GET` methods 
-and expects to to receive `text/stream` media type'. 
+and expects to to receive `text/stream` media type. 
 
 ## Types of incoming messages
 
 The frontend needs to know what type of data is coming from the backend. Conventionally messages 
 where defined to be of two types `success` or `error`. `MessageEvent` class was 
-create as a wrapper class so we can control what type of data we will be recieving in the frontend
+create as a wrapper class so we can control what type of data would be receiving in the frontend.
 
 ## Managing Deserialization
 
 In this app we can search at various servers simultaneously. By default `http://localhost:8080` acts as a proxy 
-server receving messages incoming from all other servers. To delegate request to non-proxy servers we used `WebClient`. 
+server receiving messages incoming from all other servers. To delegate request to non-proxy servers we used `WebClient`. 
 While using `WebClient` we faced errors while deserializing the `data` attribute from the `MessageEvent` bean. 
 The error happened because the `data` attribute is a generic type and the default serializer doesn't know each concrete 
  type to parse at runtime. This error was fix by introducing the `MessageEventDeserializer.class`.    
@@ -254,6 +239,21 @@ public class MessageEventDeserializer extends JsonDeserializer<MessageEvent> {
     }
 }
 ```
+
+## Searching at multiple servers
+
+To enable to search at multiple servers simultaneously two configuration properties were created in `/src/main/resources/application.yml.
+
+````yaml
+app:
+  servers: http://localhost:8080, http://localhost:9090
+  proxy-url: http://localhost:8080
+````
+
+`app.servers` configures a list of servers we can search at. The `/servers` endpoint reads this property and tries to to ping at each server. 
+If ping is successful the server is included in a set of available servers. 
+
+`app.proxy-url` defines the proxy server. All the incoming data passes thru it to be presented to the client.
 
 ## Erro handling
 
@@ -344,17 +344,16 @@ public class FileSearchService implements SearchService {
 
 ```
 
-## Testing for the backend
+## Unit testing code in the backend
 
-Most of the main functionaries were tested using JUnit5. 
-Some functionaries used Mokito and other Restassured.
+Functionaries were tested using JUnit5. 
+Some functionaries used Mokito and others Restassured.
 
 ## Frontend
 
 This app has an integration with mimecast-frontend project. 
 Please have a look at its `README.md` file for 
 further information about this project.
-
 
 ## Developed by 
 
