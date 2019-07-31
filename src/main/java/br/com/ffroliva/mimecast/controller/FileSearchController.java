@@ -59,13 +59,13 @@ public class FileSearchController {
     ) {
         if(server.equals(applicationProperties.getProxyUrl())) {
             // response from proxy server goes here
-            return Flux.fromStream(searchService
-                    .search(SearchRequest.of(server, rootPath, searchTerm)))
+            return searchService
+                    .search(SearchRequest.of(server, rootPath, searchTerm))
                     .map(MessageEvent::success);
             // response from non-proxy server goes here
         } else if(this.getRequestUrl(request).equals(server)) {
-            return Flux.fromStream(searchService
-                    .search(SearchRequest.of(server, rootPath, searchTerm)))
+            return searchService
+                    .search(SearchRequest.of(server, rootPath, searchTerm))
                     .map(MessageEvent::success);
         } else {
             // call from a the proxy server to a non-proxy server goes here

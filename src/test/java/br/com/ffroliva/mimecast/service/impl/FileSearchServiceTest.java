@@ -13,10 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import reactor.core.publisher.Flux;
 
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -26,7 +26,7 @@ class FileSearchServiceTest {
     @Autowired
     private SearchService searchService;
     @Autowired
-    ApplicationProperties applicationProperties;
+    private ApplicationProperties applicationProperties;
     private String rootPath;
 
     @BeforeEach
@@ -37,8 +37,8 @@ class FileSearchServiceTest {
     @Test
     void testSearch() {
         SearchRequest sr = SearchRequest.of(applicationProperties.getProxyUrl(), rootPath, "a");
-        final Stream<SearchResponse> searchResult = searchService.search(sr);
-        Assertions.assertEquals(11, searchResult.count());
+        final Flux<SearchResponse> searchResult = searchService.search(sr);
+        Assertions.assertEquals(11L, searchResult.count().block().longValue());
     }
 
 

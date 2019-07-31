@@ -13,16 +13,15 @@ import com.google.common.io.Files;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -32,18 +31,16 @@ public class FileSearchService implements SearchService {
     private final ApplicationProperties applicationProperties;
 
     @Override
-    public Stream<SearchResponse> search(SearchRequest searchRequest) {
+    public Flux<SearchResponse> search(SearchRequest searchRequest) {
         try {
             File file = Paths.get(searchRequest.getRootPath()).toFile();
             Validation.execute(ServerValidationRule
                     .of(searchRequest.getServer(), applicationProperties.getServersAsSet()));
             Validation.execute(IsValidPath.of(file, searchRequest.getServer()));
-            return StreamSupport
-                    .stream(Files.fileTraverser()
-                            .breadthFirst(file).spliterator(), true)
+            return Flux.fromIterable(Files.fileTraverser()
+                            .breadthFirst(file))
                     .filter(f -> f.isFile() && f.canRead())
-                    .map(f -> this.searchFileContent(f, searchRequest))
-                    .sorted(Comparator.comparing(SearchResponse::getFilePath));
+                    .map(f -> this.searchFileContent(f, searchRequest));
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {

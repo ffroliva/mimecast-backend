@@ -2,9 +2,8 @@ package br.com.ffroliva.mimecast.service;
 
 import br.com.ffroliva.mimecast.payload.SearchRequest;
 import br.com.ffroliva.mimecast.payload.SearchResponse;
-
-import java.util.stream.Stream;
+import reactor.core.publisher.Flux;
 
 public interface SearchService {
-    Stream<SearchResponse> search(SearchRequest searchRequest);
+    Flux<SearchResponse> search(SearchRequest searchRequest);
 }
