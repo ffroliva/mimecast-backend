@@ -141,7 +141,7 @@ introduced and, so, it allowed the browser to handle the incoming data properly.
 ## Strategy used to consume incoming data
 
 Server side events (SSE) was the strategy used to consume incoming data from the backend. SSE only accepts `GET` methods 
-and expects to to receive `text/stream` media type. 
+and expects to to receive `text/event-stream` media type. 
 
 ## Types of incoming messages
 
