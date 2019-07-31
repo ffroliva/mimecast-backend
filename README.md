@@ -44,7 +44,7 @@ messages in a non-blocking manner.
 @RestController
 @RequestMapping(FILE)
 public class FileSearchController {
-    public static final String FILE = "/file";
+    private static final String FILE = "/file";
     private static final String SEARCH = "/search";
 
     private final SearchService searchService;
@@ -95,7 +95,7 @@ public class FileSearchController {
     }
 
     private String getRequestUrl(ServerHttpRequest request) {
-        String requestUrl = null;
+        String requestUrl;
         try {
             URL url = new URL(request.getURI().toString());
             requestUrl = url.getProtocol() +"://" + request.getURI().getAuthority();
@@ -132,11 +132,11 @@ public class FileSearchController {
 
 ## Considerations about the stream of data:
 
-One of the main problems about streaming of data relates to the the capacity of clients/consumers 
+One of the main problems about streaming of data relates to the capacity of clients/consumers 
 to process the volume of incoming data being processed. In this app, when searching in a folder with many files and 
 folders deep, if no **backpressure** mechanism is introduced the browser will eventually crash. 
 In order to release the pressure to the client, a delayed of 100 milliseconds where
-introduced and it allowed the browser to handle the incoming data properly.
+introduced and, so, it allowed the browser to handle the incoming data properly.
 
 ## Strategy used to consume incoming data
 
@@ -146,15 +146,15 @@ and expects to to receive `text/stream` media type.
 ## Types of incoming messages
 
 The frontend needs to know what type of data is coming from the backend. Conventionally messages 
-where defined to be of two types `success` or `error`. `MessageEvent` class was 
-create as a wrapper class so we can control what type of data would be receiving in the frontend.
+where defined to be of two types `success` or `error`. `MessageEvent` class wraps those types of so we can properly
+handle them in the frontend.
 
 ## Managing Deserialization
 
 In this app we can search at various servers simultaneously. By default `http://localhost:8080` acts as a proxy 
 server receiving messages incoming from all other servers. To delegate request to non-proxy servers we used `WebClient`. 
-While using `WebClient` we faced errors while deserializing the `data` attribute from the `MessageEvent` bean. 
-The error happened because the `data` attribute is a generic type and the default serializer doesn't know which concrete 
+While using `WebClient` I faced errors while deserializing the `data` attribute from the `MessageEvent` bean. 
+The error happened because the `data` attribute is of a generic type and the default serializer doesn't know which concrete 
  type to parse at runtime. This error was fix by introducing the `MessageEventDeserializer.class`.    
 
 ```java
@@ -169,11 +169,11 @@ public class MessageEvent<T extends Data> {
     private final String type;
     private final T data;
 
-    public static final MessageEvent success(Data data) {
+    public static MessageEvent success(Data data) {
         return new MessageEvent<>(SUCCESS, data);
     }
 
-    public static final MessageEvent error(Data data){
+    public static MessageEvent error(Data data){
         return new MessageEvent<>(ERROR, data);
     }
 }
@@ -255,16 +255,23 @@ If ping is successful the server is included in a set of available servers.
 
 `app.proxy-url` defines the proxy server. All the incoming data passes thru it to be presented to the client.
 
+## Running a a non-proxy server at localhost
+
+To run a non-proxy server at localhost execute the following command at your terminal at the root path of this backend application.
+
+````jshelllanguage
+$ java -jar ./target/mimecast-backend-0.0.1.jar --server.port=9090
+````
+
 ## Erro handling
 
 This app handles two main errors:
 
-1. Non-proxy server is offline. When we search form the `/servers` endpoint is called 
-to fetch the set of available servers to search at. If by any chance the server is no longer up but we try to search at 
-it `ConnectException` ins thrown by the netty server and handle by the `handleConnectException`.     
-2. If the user informs a directory that does no exist 
-a `BusinessException` is thrown and handle by the `handleBusinessException`; 
- 
+1.  If the search form gets loaded when a given set of servers is online, if by any chance a non-proxy server 
+is no longer up and we try to search at this offline server, the netty server will throw `ConnectException`. The therefore 
+handle it and present a friendly message to the user. This error is handled by `handleConnectException`.     
+2. If the user informs a directory that does no exist any selected server
+a `BusinessException` is thrown and handled by `handleBusinessException` at `FileSearchController.
 
 ## Google guava for the rescue in the file search engine.
 
