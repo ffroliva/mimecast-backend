@@ -16,6 +16,7 @@ public class ApplicationProperties {
 
     private String servers;
     private String proxyUrl;
+    private String frontend;
 
     @Component
     public static class Documentation {
