@@ -21,6 +21,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import static br.com.ffroliva.mimecast.controller.FileSearchController.FILE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -45,10 +46,8 @@ public class FileSearchController {
             @RequestParam(value = "servers") List<String> servers,
             ServerHttpRequest request
             ) {
-        return Flux.fromStream(servers.parallelStream())
-                .flatMap(server -> this.searchAt(request,server, rootPath, searchTerm))
-                .delayElements(Duration.of(100L, ChronoUnit.MILLIS));
-
+        return Flux.fromIterable(servers)
+                .flatMap(server -> this.searchAt(request, server, rootPath, searchTerm));
     }
 
     private Flux<MessageEvent> searchAt(

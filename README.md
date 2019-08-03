@@ -44,7 +44,7 @@ messages in a non-blocking manner.
 @RestController
 @RequestMapping(FILE)
 public class FileSearchController {
-    private static final String FILE = "/file";
+    public static final String FILE = "/file";
     private static final String SEARCH = "/search";
 
     private final SearchService searchService;
@@ -58,10 +58,8 @@ public class FileSearchController {
             @RequestParam(value = "servers") List<String> servers,
             ServerHttpRequest request
             ) {
-        return Flux.fromStream(servers.parallelStream())
-                .flatMap(server -> this.searchAt(request,server, rootPath, searchTerm))
-                .delayElements(Duration.of(100L, ChronoUnit.MILLIS));
-
+        return Flux.fromIterable(servers)
+                .flatMap(server -> this.searchAt(request, server, rootPath, searchTerm));
     }
 
     private Flux<MessageEvent> searchAt(
@@ -72,13 +70,13 @@ public class FileSearchController {
     ) {
         if(server.equals(applicationProperties.getProxyUrl())) {
             // response from proxy server goes here
-            return Flux.fromStream(searchService
-                    .search(SearchRequest.of(server, rootPath, searchTerm)))
+            return searchService
+                    .search(SearchRequest.of(server, rootPath, searchTerm))
                     .map(MessageEvent::success);
             // response from non-proxy server goes here
         } else if(this.getRequestUrl(request).equals(server)) {
-            return Flux.fromStream(searchService
-                    .search(SearchRequest.of(server, rootPath, searchTerm)))
+            return searchService
+                    .search(SearchRequest.of(server, rootPath, searchTerm))
                     .map(MessageEvent::success);
         } else {
             // call from a the proxy server to a non-proxy server goes here
@@ -95,7 +93,7 @@ public class FileSearchController {
     }
 
     private String getRequestUrl(ServerHttpRequest request) {
-        String requestUrl;
+        String requestUrl = null;
         try {
             URL url = new URL(request.getURI().toString());
             requestUrl = url.getProtocol() +"://" + request.getURI().getAuthority();
@@ -128,14 +126,15 @@ public class FileSearchController {
     }
 
 }
+
 ```
 
 ## Considerations about the stream of data:
 
 One of the main problems about streaming of data relates to the capacity of clients/consumers 
 to process the volume of incoming data being processed. In this app, when searching in a folder with many files and 
-folders deep, if no **backpressure** mechanism is introduced the browser will eventually crash. 
-In order to release the pressure to the client, a delayed of 100 milliseconds where
+folders deep, if no **backpressure** mechanism is introduced the app will eventually crash due to out of memory error. 
+In order to release the pressure to the client, a delayed of 300 milliseconds where
 introduced and, so, it allowed the browser to handle the incoming data properly.
 
 ## Strategy used to consume incoming data
@@ -153,9 +152,8 @@ handle them in the frontend.
 
 In this app we can search at various servers simultaneously. By default `http://localhost:8080` acts as a proxy 
 server receiving messages incoming from all other servers. To delegate request to non-proxy servers we used `WebClient`. 
-While using `WebClient` I faced errors while deserializing the `data` attribute from the `MessageEvent` bean. 
-The error happened because the `data` attribute is of a generic type and the default serializer doesn't know which concrete 
- type to parse at runtime. This error was fix by introducing the `MessageEventDeserializer.class`.    
+When using `WebClient` It does not know how to deserializing the `data` attribute from the `MessageEvent` bean which is
+of a generic type. To fix this a `MessageEventDeserializer.class` needed to be introduced.    
 
 ```java
 @JsonDeserialize(using = MessageEventDeserializer.class)
@@ -250,12 +248,12 @@ app:
   proxy-url: http://localhost:8080
 ````
 
-`app.servers` configures a list of servers we can search at. The `/servers` endpoint reads this property and tries to to ping at each server. 
+`app.servers` defines a list of servers we can search at. The `/servers` endpoint reads this property and tries to to ping at each server. 
 If ping is successful the server is included in a set of available servers. 
 
-`app.proxy-url` defines the proxy server. All the incoming data passes thru it to be presented to the client.
+`app.proxy-url` defines the proxy server. All the incoming data passes thru this server to be presented to the client.
 
-## Running a a non-proxy server at localhost
+## Running a non-proxy server at localhost
 
 To run a non-proxy server at localhost execute the following command at your terminal at the root path of this backend application.
 
@@ -293,36 +291,43 @@ Here is the code:
 ```java
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FileSearchService implements SearchService {
 
+    private final ApplicationProperties applicationProperties;
+
     @Override
-    public Stream<SearchResponse> search(SearchRequest searchRequest) {
+    public Flux<SearchResponse> search(SearchRequest searchRequest) {
         try {
             File file = Paths.get(searchRequest.getRootPath()).toFile();
-            Validation.execute(ServerValidationRule.of(searchRequest.getHost()));
-            Validation.execute(IsValidPath.of(file));
-            return StreamSupport
-                    .stream(Files.fileTraverser()
-                            .breadthFirst(file).spliterator(), true)
+            Validation.execute(ServerValidationRule
+                    .of(searchRequest.getServer(), applicationProperties.getServersAsSet()));
+            Validation.execute(IsValidPath.of(file, searchRequest.getServer()));
+            return Flux.fromIterable(Files.fileTraverser()
+                            .breadthFirst(file))
                     .filter(f -> f.isFile() && f.canRead())
-                    .map(f -> this.searchFileContent(f, searchRequest.getSearchTerm()))
-                    .sorted(Comparator.comparing(SearchResponse::getFilePath));
+                    .map(f -> this.searchFileContent(f, searchRequest))
+                    .delayElements(Duration.ofMillis(300));
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
-            throw new BusinessException(MessageProperty.INVALID_PATH
+            throw new BusinessException(MessageProperty.INTERNAL_SERVER_ERROR
                     .bind(searchRequest.getRootPath()));
         }
     }
 
-    private SearchResponse searchFileContent(File file, String searchTerm) {
+    private SearchResponse searchFileContent(File file, SearchRequest searchRequest) {
         SearchResponse response;
         try (BufferedReader br = Files.newReader(file, Charset.defaultCharset())) {
             response = SearchResponse.of(
                     file.getAbsolutePath(),
-                    countWordsInFile(searchTerm, br.lines()));
+                    countWordsInFile(searchRequest.getSearchTerm(), br.lines()),
+                    searchRequest.getServer());
         } catch (Exception e) {
             response = SearchResponse.of(
                     file.getAbsolutePath(),
-                    0);
+                    0,
+                    searchRequest.getServer());
         }
         log.debug(response.toString());
         return response;
@@ -347,6 +352,8 @@ public class FileSearchService implements SearchService {
         }
         return count;
     }
+
+
 }
 
 ```

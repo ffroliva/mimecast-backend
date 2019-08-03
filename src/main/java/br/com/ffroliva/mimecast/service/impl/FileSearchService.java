@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -40,7 +41,8 @@ public class FileSearchService implements SearchService {
             return Flux.fromIterable(Files.fileTraverser()
                             .breadthFirst(file))
                     .filter(f -> f.isFile() && f.canRead())
-                    .map(f -> this.searchFileContent(f, searchRequest));
+                    .map(f -> this.searchFileContent(f, searchRequest))
+                    .delayElements(Duration.ofMillis(300));
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
